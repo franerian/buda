@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Winechitecture — BUDA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #080808;
+      --fg:      #F0EDE8;
+      --mid:     #888880;
+      --dim:     #3A3A38;
+      --line:    #1E1E1C;
+      --accent:  #9B7EC8;
+      --accent2: #8B4A6A;
+      --font:    'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      font-size: 18px;
+      line-height: 1.65;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .reveal.visible, .reveal-left.visible {
+      opacity: 1;
+      transform: translate(0);
+    }
+    .rd1 { transition-delay: 0.1s; }
+    .rd2 { transition-delay: 0.22s; }
+    .rd3 { transition-delay: 0.36s; }
+    .rd4 { transition-delay: 0.5s; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 48px;
+      transition: background 0.4s, padding 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(8,8,8,0.92);
+      backdrop-filter: blur(14px);
+      padding: 18px 48px;
+    }
+    .nav-back {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--fg); }
+    .nav-back svg { width: 14px; height: 14px; }
+    .nav-logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--fg);
+      text-decoration: none;
+      opacity: 0.85;
+    }
+    .nav-logo:hover { opacity: 1; }
+
+    /* ── HERO ── */
+    .project-hero {
+      position: relative;
+      height: 100vh;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 80px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 60% 40%, rgba(139,74,106,0.35) 0%, transparent 60%),
+        radial-gradient(ellipse at 30% 70%, rgba(200,151,58,0.18) 0%, transparent 55%),
+        linear-gradient(175deg, #1C0D22 0%, #0D0D0D 45%, #0A0606 100%);
+    }
+    /* Vineyard-row lines — evokes the Winechitecture logo & landscape */
+    .hero-lines {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      overflow: hidden;
+    }
+    .hero-lines svg {
+      width: 100%;
+      height: 100%;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(8,8,8,0.85) 0%, rgba(8,8,8,0.1) 60%, transparent 100%);
+    }
+    .project-hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .project-type {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 1s ease 0.4s forwards;
+    }
+
+    /* Winechitecture wordmark SVG */
+    .winelogo {
+      width: min(560px, 80vw);
+      opacity: 0;
+      animation: fadeUp 1s ease 0.7s forwards;
+    }
+
+    .project-subject {
+      margin-top: 24px;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.5);
+      opacity: 0;
+      animation: fadeUp 1s ease 1s forwards;
+    }
+
+    /* scroll indicator */
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 1s ease 1.5s forwards;
+    }
+    .hero-scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, transparent, var(--accent));
+      animation: linePulse 2s ease-in-out 2.5s infinite;
+    }
+    @keyframes linePulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50%       { opacity: 1;   transform: scaleY(1.1); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── META STRIP ── */
+    .meta-strip {
+      display: flex;
+      align-items: stretch;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .meta-item {
+      flex: 1;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-right: 1px solid var(--line);
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+    .meta-val {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fg);
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 40px;
+    }
+
+    /* ── LOGLINE ── */
+    .logline-section {
+      padding: 100px 48px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .logline {
+      font-size: clamp(22px, 2.6vw, 34px);
+      font-weight: 300;
+      line-height: 1.5;
+      color: var(--fg);
+      font-style: italic;
+      letter-spacing: -0.01em;
+    }
+    .logline em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    /* ── SINOPSIS ── */
+    .sinopsis-section {
+      padding: 80px 48px 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--line);
+    }
+    .sinopsis-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 64px;
+    }
+    .sinopsis-body {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .sinopsis-body p {
+      font-size: 17px;
+      color: rgba(240,237,232,0.78);
+      line-height: 1.75;
+    }
+    .sinopsis-body p:first-child {
+      font-size: 19px;
+      color: var(--fg);
+      font-weight: 400;
+    }
+
+    /* ── QUOTE ── */
+    .quote-section {
+      padding: 100px 48px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(139,74,106,0.06) 0%, rgba(200,151,58,0.04) 100%);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .quote-mark {
+      font-size: 60px;
+      color: var(--accent);
+      opacity: 0.3;
+      line-height: 0.6;
+      margin-bottom: 32px;
+      font-family: Georgia, serif;
+    }
+    .quote-text {
+      font-size: clamp(22px, 3vw, 42px);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--fg);
+      max-width: 820px;
+      margin: 0 auto 24px;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+    .quote-cite {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ── GALLERY ── */
+    .gallery-section {
+      padding: 100px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: auto;
+      gap: 12px;
+    }
+    .gallery-item {
+      background: var(--line);
+      overflow: hidden;
+      position: relative;
+    }
+    .gallery-item::after {
+      content: '';
+      display: block;
+    }
+    .gi-1 { grid-column: 1 / 8; grid-row: 1; padding-bottom: 56%; }
+    .gi-2 { grid-column: 8 / 13; grid-row: 1; padding-bottom: 0; aspect-ratio: unset; }
+    .gi-3 { grid-column: 1 / 5; grid-row: 2; padding-bottom: 70%; }
+    .gi-4 { grid-column: 5 / 9; grid-row: 2; padding-bottom: 70%; }
+    .gi-5 { grid-column: 9 / 13; grid-row: 2; padding-bottom: 70%; }
+    .gi-6 { grid-column: 1 / 13; grid-row: 3; height: 260px; }
+
+    .gallery-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px dashed rgba(240,237,232,0.08);
+    }
+    .gallery-placeholder-icon {
+      width: 28px;
+      height: 28px;
+      opacity: 0.15;
+    }
+    .gallery-placeholder-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mid);
+      opacity: 0.5;
+    }
+    /* Accent corner line on hover */
+    .gallery-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--accent);
+      opacity: 0;
+      transition: opacity 0.4s;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .gallery-item:hover::before { opacity: 0.25; }
+
+    /* ── VIDEO ── */
+    .video-section {
+      padding: 0 48px 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .video-trigger {
+      position: relative;
+      cursor: pointer;
+      background: #0D0D0D;
+      border: 1px solid var(--line);
+      height: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .video-trigger:hover { border-color: var(--accent); }
+    .video-trigger-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, rgba(139,74,106,0.2) 0%, transparent 65%);
+    }
+    .video-play-ring {
+      position: relative;
+      z-index: 2;
+      width: 80px;
+      height: 80px;
+      border: 1px solid rgba(240,237,232,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .video-trigger:hover .video-play-ring {
+      border-color: var(--accent);
+      transform: scale(1.08);
+    }
+    .video-play-ring svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--fg);
+      margin-left: 3px;
+    }
+    .video-trigger-label {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--mid);
+      white-space: nowrap;
+    }
+
+    /* ── TRATAMIENTO ── */
+    .tratamiento-section {
+      padding: 100px 48px;
+      background: #0B0B0B;
+      border-top: 1px solid var(--line);
+    }
+    .tratamiento-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .tratamiento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 0;
+    }
+    .t-item {
+      padding: 48px 40px;
+      background: var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+    .t-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+    .t-item:hover::after { transform: scaleX(1); }
+    .t-num {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .t-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+    .t-body {
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.7;
+    }
+
+    /* ── EQUIPO ── */
+    .equipo-section {
+      padding: 100px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--line);
+    }
+    .equipo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .persona-card {
+      padding: 48px 0 0;
+    }
+    .persona-photo-wrap {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background: var(--line);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .persona-photo-wrap::after {
+      content: attr(data-label);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .p-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+    .p-role {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--mid);
+    }
+
+    /* ── BACK ROW ── */
+    .back-row {
+      padding: 64px 48px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--fg); }
+    .back-link svg { width: 16px; height: 16px; }
+    .back-buda {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-buda:hover { color: var(--fg); }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.96);
+      align-items: center;
+      justify-content: center;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox-inner {
+      position: relative;
+      width: min(90vw, 1200px);
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+    .lightbox-inner video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: -48px;
+      right: 0;
+      background: none;
+      border: none;
+      color: var(--mid);
+      font-size: 24px;
+      cursor: pointer;
+      font-family: var(--font);
+      letter-spacing: 0.1em;
+      transition: color 0.2s;
+    }
+    .lightbox-close:hover { color: var(--fg); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      nav { padding: 20px 24px; }
+      nav.scrolled { padding: 14px 24px; }
+      .meta-strip { flex-wrap: wrap; }
+      .meta-item { flex: 1 1 50%; border-right: none; border-bottom: 1px solid var(--line); }
+      .logline-section { padding: 60px 24px; }
+      .sinopsis-section { padding: 60px 24px 80px; }
+      .sinopsis-grid { grid-template-columns: 1fr; gap: 32px; }
+      .quote-section { padding: 60px 24px; }
+      .gallery-section { padding: 60px 24px; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; }
+      .gi-1 { grid-column: 1 / 3; grid-row: auto; padding-bottom: 56%; }
+      .gi-2 { grid-column: 1 / 3; height: 240px; padding-bottom: 0; }
+      .gi-3, .gi-4, .gi-5 { grid-column: span 1; padding-bottom: 80%; }
+      .gi-6 { grid-column: 1 / 3; height: 180px; }
+      .video-section { padding: 0 24px 60px; }
+      .video-trigger { height: 280px; }
+      .tratamiento-section { padding: 60px 24px; }
+      .tratamiento-grid { grid-template-columns: 1fr; gap: 2px; }
+      .equipo-section { padding: 60px 24px; }
+      .equipo-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .back-row { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav id="nav">
+    <a href="buda_landing.html#portfolio" class="nav-back">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <polyline points="9,2 4,7 9,12"/>
+      </svg>
+      Trabajos
+    </a>
+    <a href="buda_landing.html" class="nav-logo">BUDA</a>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="project-hero">
+    <div class="hero-bg"></div>
+
+    <!-- atmospheric vineyard lines -->
+    <div class="hero-lines">
+      <svg viewBox="0 0 1440 400" preserveAspectRatio="xMidYMid slice" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g opacity="0.18" stroke="#9B7EC8" stroke-width="0.7">
+          <!-- Left fan lines -->
+          <line x1="720" y1="0"   x2="0"    y2="400"/>
+          <line x1="720" y1="0"   x2="80"   y2="400"/>
+          <line x1="720" y1="0"   x2="180"  y2="400"/>
+          <line x1="720" y1="0"   x2="300"  y2="400"/>
+          <line x1="720" y1="0"   x2="430"  y2="400"/>
+          <line x1="720" y1="0"   x2="560"  y2="400"/>
+          <!-- Center -->
+          <line x1="720" y1="0"   x2="720"  y2="400"/>
+          <!-- Right fan lines -->
+          <line x1="720" y1="0"   x2="880"  y2="400"/>
+          <line x1="720" y1="0"   x2="1010" y2="400"/>
+          <line x1="720" y1="0"   x2="1140" y2="400"/>
+          <line x1="720" y1="0"   x2="1260" y2="400"/>
+          <line x1="720" y1="0"   x2="1360" y2="400"/>
+          <line x1="720" y1="0"   x2="1440" y2="400"/>
+        </g>
+      </svg>
+    </div>
+    <div class="hero-overlay"></div>
+
+    <div class="project-hero-content">
+      <p class="project-type">Largometraje · Documental · Buda</p>
+
+      <!-- Winechitecture wordmark SVG -->
+      <svg class="winelogo" viewBox="0 0 560 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- top rule -->
+        <line x1="30" y1="6" x2="530" y2="6" stroke="#F0EDE8" stroke-width="0.7" opacity="0.6"/>
+        <!-- wordmark -->
+        <text x="280" y="34" text-anchor="middle"
+          font-family="'Space Grotesk', sans-serif"
+          font-size="19"
+          font-weight="600"
+          letter-spacing="9"
+          fill="#F0EDE8">WINECHITECTURE</text>
+        <!-- vineyard lines - fanning from center bottom of text -->
+        <g stroke="#F0EDE8" stroke-width="0.75" opacity="0.55">
+          <line x1="280" y1="40" x2="30"  y2="88"/>
+          <line x1="280" y1="40" x2="90"  y2="88"/>
+          <line x1="280" y1="40" x2="150" y2="88"/>
+          <line x1="280" y1="40" x2="200" y2="88"/>
+          <line x1="280" y1="40" x2="242" y2="88"/>
+          <line x1="280" y1="40" x2="265" y2="88"/>
+          <line x1="280" y1="40" x2="280" y2="88"/>
+          <line x1="280" y1="40" x2="295" y2="88"/>
+          <line x1="280" y1="40" x2="318" y2="88"/>
+          <line x1="280" y1="40" x2="360" y2="88"/>
+          <line x1="280" y1="40" x2="410" y2="88"/>
+          <line x1="280" y1="40" x2="470" y2="88"/>
+          <line x1="280" y1="40" x2="530" y2="88"/>
+        </g>
+      </svg>
+
+      <p class="project-subject">Eliana Bórmida</p>
+    </div>
+
+    <div class="hero-scroll-hint">
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ── META STRIP ── -->
+  <div class="meta-strip">
+    <div class="meta-item reveal rd1">
+      <span class="meta-label">Formato</span>
+      <span class="meta-val">Largometraje</span>
+    </div>
+    <div class="meta-item reveal rd2">
+      <span class="meta-label">Género</span>
+      <span class="meta-val">Documental</span>
+    </div>
+    <div class="meta-item reveal rd2">
+      <span class="meta-label">Directora</span>
+      <span class="meta-val">Pilar Zapata</span>
+    </div>
+    <div class="meta-item reveal rd3">
+      <span class="meta-label">Guión</span>
+      <span class="meta-val">Zapata & Baima</span>
+    </div>
+    <div class="meta-item reveal rd4">
+      <span class="meta-label">Producción</span>
+      <span class="meta-val">Buda</span>
+    </div>
+  </div>
+
+  <!-- ── LOGLINE ── -->
+  <section class="logline-section">
+    <p class="logline reveal">
+      Un viaje sensorial al corazón de los <em>Andes mendocinos</em>,
+      donde la obra de Eliana Bórmida —pionera en la arquitectura del vino
+      en América Latina— revela cómo el paisaje, la luz, la emoción
+      y el patrimonio enológico, pueden transformarse en <em>legado</em>.
+    </p>
+  </section>
+
+  <!-- ── SINOPSIS ── -->
+  <section class="sinopsis-section">
+    <div class="sinopsis-grid">
+      <div>
+        <p class="section-label reveal-left">Sinopsis</p>
+      </div>
+      <div class="sinopsis-body">
+        <p class="reveal rd1">
+          Este documental es un viaje sensorial y humano por la obra de Eliana Bórmida,
+          pionera de la arquitectura vitivinícola en América Latina. Desde Mendoza, al pie
+          de los Andes, exploramos cómo su visión ha transformado el paisaje, resignificando
+          las bodegas como espacios que conectan identidad, tradición y cultura.
+        </p>
+        <p class="reveal rd2">
+          A través de un recorrido íntimo por sus obras más emblemáticas, su proceso creativo
+          y la mirada del paisaje como coautor, descubrimos una filosofía arquitectónica en
+          la que se reflexiona sobre la pertenencia, los paisajes culturales de la vina,
+          y su desarrollo sostenible.
+        </p>
+        <p class="reveal rd3">
+          Es una meditación sobre el paso del tiempo, la importancia de habitar poéticamente
+          la tierra, y crear lugares de producción asociados a la funcionalidad, al turismo
+          experiencial, la identidad, la belleza y la emoción. Eliana Bórmida emerge no solo
+          como una figura profesional influyente, sino como una constructora de legado.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GALERÍA ── -->
+  <section class="gallery-section">
+    <p class="section-label reveal-left">Imágenes</p>
+    <div class="gallery-grid">
+      <div class="gallery-item gi-1 reveal rd1">
+        <div class="gallery-placeholder">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Bodegas · Paisaje Andino</span>
+        </div>
+      </div>
+      <div class="gallery-item gi-2 reveal rd2">
+        <div class="gallery-placeholder">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Retrato · Eliana Bórmida</span>
+        </div>
+      </div>
+      <div class="gallery-item gi-3 reveal rd1">
+        <div class="gallery-placeholder">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Arquitectura · Cava</span>
+        </div>
+      </div>
+      <div class="gallery-item gi-4 reveal rd2">
+        <div class="gallery-placeholder">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Viñedos · Cordillera</span>
+        </div>
+      </div>
+      <div class="gallery-item gi-5 reveal rd3">
+        <div class="gallery-placeholder">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Luz · Atardecer</span>
+        </div>
+      </div>
+      <div class="gallery-item gi-6 reveal">
+        <div class="gallery-placeholder" style="flex-direction: row; gap: 16px;">
+          <svg class="gallery-placeholder-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4">
+            <rect x="2" y="5" width="24" height="18" rx="1"/>
+            <circle cx="9" cy="11" r="2.5"/>
+            <polyline points="2,19 9,12 15,17 19,13 26,20"/>
+          </svg>
+          <span class="gallery-placeholder-label">Still panorámico · Valle de Uco</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VIDEO ── -->
+  <section class="video-section">
+    <p class="section-label reveal-left" style="margin-bottom: 20px;">Avance</p>
+    <div class="video-trigger reveal" onclick="openVideo()">
+      <div class="video-trigger-bg"></div>
+      <div class="video-play-ring">
+        <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="6,3 20,11 6,19"/>
+        </svg>
+      </div>
+      <span class="video-trigger-label">Ver avance del proyecto</span>
+    </div>
+  </section>
+
+  <!-- ── QUOTE ── -->
+  <section class="quote-section">
+    <p class="quote-mark reveal">"</p>
+    <p class="quote-text reveal rd1">Arquitectura: el arte de habitar el tiempo sin romperlo.</p>
+    <p class="quote-cite reveal rd2">— Eliana Bórmida</p>
+  </section>
+
+  <!-- ── TRATAMIENTO ── -->
+  <section class="tratamiento-section">
+    <div class="tratamiento-inner">
+      <p class="section-label reveal-left">Propuesta estética</p>
+      <div class="tratamiento-grid">
+        <div class="t-item reveal rd1">
+          <p class="t-num">01</p>
+          <h3 class="t-title">Sensorial y<br>contemplativo</h3>
+          <p class="t-body">
+            Planos abiertos y simétricos que revelan la integración entre obra y entorno natural.
+            La arquitectura como continuidad del piedemonte, no como imposición.
+            Tiempos extendidos: la cámara respira con el espacio.
+          </p>
+        </div>
+        <div class="t-item reveal rd2">
+          <p class="t-num">02</p>
+          <h3 class="t-title">Fenomenológico<br>e íntimo</h3>
+          <p class="t-body">
+            Momentos observacionales de Eliana habitando sus espacios.
+            Cámara en mano con movimiento flotante y proximidad orgánica.
+            Una relación cercana y genuina donde la cámara acompaña y respira con ella.
+          </p>
+        </div>
+        <div class="t-item reveal rd3">
+          <p class="t-num">03</p>
+          <h3 class="t-title">Luz y<br>paisaje</h3>
+          <p class="t-body">
+            Luz dorada del amanecer y del atardecer que revela materialidad y textura.
+            Transiciones por asociación poética: la textura de una roca lleva al muro
+            de una bodega. El sonido como personaje. El silencio como pausa contemplativa.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EQUIPO ── -->
+  <section class="equipo-section">
+    <p class="section-label reveal-left">Equipo creativo</p>
+    <div class="equipo-grid">
+      <div class="persona-card reveal rd1">
+        <div class="persona-photo-wrap" data-label="[ FOTO ]"></div>
+        <p class="p-name">Pilar Zapata</p>
+        <p class="p-role">Dirección · Guión</p>
+      </div>
+      <div class="persona-card reveal rd2">
+        <div class="persona-photo-wrap" data-label="[ FOTO ]"></div>
+        <p class="p-name">Jimena Baima</p>
+        <p class="p-role">Producción ejecutiva · Guión</p>
+      </div>
+      <div class="persona-card reveal rd3">
+        <div class="persona-photo-wrap" data-label="[ FOTO ]"></div>
+        <p class="p-name">Eliana Bórmida</p>
+        <p class="p-role">Sujeto del documental<br>Arquitecta · Pionera</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BACK ── -->
+  <div class="back-row">
+    <a href="buda_landing.html#portfolio" class="back-link">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <polyline points="10,2 4,8 10,14"/>
+      </svg>
+      Volver a trabajos
+    </a>
+    <a href="buda_landing.html" class="back-buda">BUDA</a>
+  </div>
+
+  <!-- ── LIGHTBOX ── -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" onclick="closeVideo()">✕ Cerrar</button>
+      <video id="lightbox-video" controls>
+        <source src="BUDA_Casa_Productora_-_REEL [Jm7dWtfIRcU].mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <script>
+    // ── NAV SCROLL ──
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    // ── REVEAL (IntersectionObserver) ──
+    const reveals = document.querySelectorAll('.reveal, .reveal-left');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── VIDEO LIGHTBOX ──
+    const lightbox = document.getElementById('lightbox');
+    const lbVideo  = document.getElementById('lightbox-video');
+
+    function openVideo() {
+      lightbox.classList.add('open');
+      lbVideo.muted = false;
+      lbVideo.currentTime = 0;
+      lbVideo.play();
+      document.body.style.overflow = 'hidden';
+    }
+    function closeVideo() {
+      lightbox.classList.remove('open');
+      lbVideo.pause();
+      lbVideo.muted = true;
+      document.body.style.overflow = '';
+    }
+
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox) closeVideo();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeVideo();
+    });
+  </script>
+
+</body>
+</html>
